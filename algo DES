@@ -1,0 +1,55 @@
+pip install pycryptodome
+pip install pyotp
+
+from Crypto.Cipher import DES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+import pyotp
+
+# Function to encrypt a message 
+def encrypt_des(message, key):
+    cipher = DES.new(key, DES.MODE_ECB)
+    padded_message = pad(message.encode(), DES.block_size)
+    ciphertext = cipher.encrypt(padded_message)
+    return ciphertext
+
+# Function to decrypt a ciphertext
+def decrypt_des(ciphertext, key):
+    cipher = DES.new(key, DES.MODE_ECB)
+    decrypted_message = cipher.decrypt(ciphertext)
+    original_message = unpad(decrypted_message, DES.block_size)
+    return original_message.decode()
+
+def generate_totp(secret_key):
+    totp = pyotp.TOTP(secret_key)
+    return totp.now()
+
+# Generating a secret key for OTP
+otp_secret = pyotp.random_base32()
+
+# Generating and verifying OTP
+otp_generated = generate_totp(otp_secret)
+print("Generated OTP:", otp_generated)
+
+# OTP verification
+otp_input = input("Please enter the generated OTP: ")
+if otp_generated == otp_input:
+    print("OTP Authentication Successful.")
+    
+    # Generating a 64-bit DES key (using ECB mode)
+    key = get_random_bytes(8)
+    
+    # Displaying the key in hexadecimal
+    hex_key = key.hex()
+    print("DES Key in Hexadecimal:", hex_key)
+    
+    # Message to be encrypted
+    message = "Hello, DES!"
+
+    encrypted_data = encrypt_des(message, key)
+    print("Encrypted Message with DES:", encrypted_data)
+    
+    decrypted_message = decrypt_des(encrypted_data, key)
+    print("Decrypted Message with DES:", decrypted_message)
+else:
+    print("OTP Authentication Failed.")
